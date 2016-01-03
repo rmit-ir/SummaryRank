@@ -21,6 +21,8 @@ Detailed installation instructions and usage will be made available shortly.
 
 * Ruey-Cheng Chen
 * Damiano Spina
+* Liu Yang
+* Qingyao Ai
 
 ## References ##
 
