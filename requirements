@@ -1,0 +1,7 @@
+gensim
+lxml
+nltk
+numpy
+PorterStemmer
+KrovetzStemmer>=0.3
+scikit-learn
