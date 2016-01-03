@@ -7,7 +7,7 @@ As of January 2016, this package supports the following sets of features:
 
 * Query-biased summarization features from Metzler and Kanungo (2008) 
 * ESA and Word2Vec features from Chen et al. (2015)
-* TAGME feature and context meta-features from Liu et al. (2016)
+* TAGME feature and context meta-features from Yang et al. (2016)
 
 If you use this package in your research work, please cite the following paper:
 
