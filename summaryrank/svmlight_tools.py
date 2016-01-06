@@ -330,16 +330,19 @@ def normalize(argv):
                     yield qid, group
                 qid = m['qid']
                 group = dict.fromkeys(vector, [])
-            for fid, val in vector:
+            for fid, val in vector.items():
                 group[fid].append(val)
         if group:
             yield qid, group
 
     # first pass over data to collect means
     rows = get_rows(_open(args.vector_file))
-    means = dict()
+    # means = dict()
+    min_values, gaps = dict(), dict()
     for qid, group in get_vector_groups(rows):
-        means[qid] = dict((fid, np.mean(values)) for fid, values in group)
+        # means[qid] = dict((fid, np.mean(values)) for fid, values in group)
+        min_values[qid] = {fid: min(values) for fid, values in group.items()}
+        gaps[qid] = {fid: max(values) - min(values) for fid, values in group.items()}
 
     # second pass
     rows = get_rows(_open(args.vector_file))
@@ -348,6 +351,7 @@ def normalize(argv):
     for vector, m in get_vectors(rows):
         buf = []
         for fid in sorted(vector):
-            buf.append('{}:{}'.format(fid, vector[fid] - means[m['qid']][fid]))
+            new_value = float(vector[fid] - min_values[m['qid']][fid]) / gaps[m['qid']][fid]
+            buf.append('{}:{}'.format(fid, new_value))
         row = ' '.join(buf)
         print '{} qid:{} {} # docno:{}'.format(m['rel'], m['qid'], row, m['docno'])
