@@ -26,6 +26,7 @@ commands:
 IMPORTER_FUNCTIONS = [
     ("import_webap", summaryrank.importers.import_webap),
     ("import_trec_novelty", summaryrank.importers.import_trec_novelty),
+    ("import_mobileclick", summaryrank.importers.import_mobileclick),
 ]
 
 FEATURE_FUNCTIONS = [
