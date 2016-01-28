@@ -4,7 +4,9 @@ Semantic features
 import argparse
 import json
 import math
+import subprocess
 import sys
+import tempfile
 
 from gensim.models.word2vec import Word2Vec
 from . import tagme
@@ -212,9 +214,93 @@ FEATURES = [
 ]
 
 
+def _get_esa_vectors(pipeinput, prefix):
+    sentence_id = None
+    vector = None
+    prefix_len = len(prefix)
+
+    while True:
+        line = pipeinput.readline()
+        if not line:
+            break
+        qid, _, docno, _, score, _ = line.split()
+        if sentence_id != qid:
+            if sentence_id:
+                yield sentence_id, vector
+            sentence_id = qid
+            vector = []
+        vector.append((int(docno[prefix_len:]), float(score)))
+    if sentence_id:
+        yield sentence_id, vector
+
+
 def gen_esa(argv):
     """ Generate ESA representations """
-    pass
+    parser = argparse.ArgumentParser(
+        prog='gen_esa',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
+    )
+
+    parser.add_argument('-m', dest='model', metavar='DIR', required=True,
+                        help='store the processed data in DIR')
+    parser.add_argument('-k', type=int,
+                        help='number of concepts to index in a vector (default: %(default)s)')
+    parser.add_argument('index_path',
+                        help='path to a Galago index')
+    parser.set_defaults(k=100)
+    args = parser.parse_args(argv)
+
+    model = summaryrank.Model(args.model)
+
+    with model.open('topics_esa', 'wb') as out:
+        query_filename = None
+        with tempfile.NamedTemporaryFile(delete=False) as query_json:
+            queries = []
+            for qid, text in model.load_representation('topics_term'):
+                queries.append({'number': qid, 'text': text})
+            json.dump({'queries': queries}, query_json, indent=2)
+            query_filename = query_json.name
+
+        p = subprocess.Popen(['galago', 'batch-search', '--index={}'.format(args.index_path),
+                              '--requested={}'.format(args.k), query_filename],
+                             stdout=subprocess.PIPE)
+        with SaveFileLineIndicator('topics_esa', gap=1) as indicator:
+            esa_vectors = _get_esa_vectors(p.stdout, 'ENWIKI_')
+            vid, vector = next(esa_vectors, (None, None))
+            for qid, _ in model.load_representation('topics_term'):
+                if qid == vid:
+                    out.write(qid + '\t' + ' '.join(
+                        ['{}:{}'.format(k, v) for k, v in vector]) + '\n')
+                    vid, vector = next(esa_vectors, (None, None))
+                else:
+                    out.write(qid + '\t' + '\n')
+                indicator.update()
+
+    with model.open('sentences_esa', 'wb') as out:
+        query_filename = None
+        with tempfile.NamedTemporaryFile(delete=False) as query_json:
+            queries = []
+            for docno, id_, qid, text in model.load_representation('sentences_term'):
+                queries.append({'number': '{}:{}:{}'.format(qid, docno, id_), 'text': text})
+            json.dump({'queries': queries}, query_json, indent=2)
+            query_filename = query_json.name
+
+        p = subprocess.Popen(['galago', 'batch-search', '--index={}'.format(args.index_path),
+                              '--requested={}'.format(args.k), query_filename],
+                             stdout=subprocess.PIPE)
+        with SaveFileLineIndicator('sentences_esa', gap=1) as indicator:
+            esa_vectors = _get_esa_vectors(p.stdout, 'ENWIKI_')
+            vid, vector = next(esa_vectors, (None, None))
+            for docno, id_, qid, _ in model.load_representation('sentences_term'):
+                this_vid = '{}:{}:{}'.format(qid, docno, id_)
+                if this_vid == vid:
+                    out.write(docno + '\t' + id_ + '\t' + qid + '\t' +
+                              ' '.join(['{}:{}'.format(k, v) for k, v in vector]) + '\n')
+                    vid, vector = next(esa_vectors, (None, None))
+                else:
+                    out.write(docno + '\t' + id_ + '\t' + qid + '\t' + '\n')
+                indicator.update()
 
 
 def gen_tagme(argv):
@@ -225,9 +311,9 @@ def gen_tagme(argv):
         add_help=False,
     )
 
-    parser.add_argument('-m', dest='model', metavar='DIR',
+    parser.add_argument('-m', dest='model', metavar='DIR', required=True,
                         help='store the processed data in DIR')
-    parser.add_argument('-k', '--api-key', metavar='KEY',
+    parser.add_argument('api_key',
                         help='TAGME API key')
     args = parser.parse_args(argv)
 
