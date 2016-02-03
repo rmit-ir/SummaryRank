@@ -32,7 +32,7 @@ def import_mobileclick(argv):
                         help='store the processed data in DIR')
     parser.add_argument('queries_file')
     parser.add_argument('iunits_file')
-    parser.add_argument('weights_file')
+    parser.add_argument('weights_file', nargs='?')
     args = parser.parse_args(argv)
 
     model = summaryrank.Model(args.model)
@@ -43,7 +43,10 @@ def import_mobileclick(argv):
     qids = [m['qid'] for _, m in topics]
 
     # process corpus data and save sentences
-    qrels = get_qrels(summaryrank.open(args.weights_file))
+    if args.weights_file:
+        qrels = get_qrels(summaryrank.open(args.weights_file))
+    else:
+        qrels = {}
     sentences = get_sentences(summaryrank.open(args.iunits_file), qrels=qrels, charset='utf8')
     model.save_sentences_qrels(sentences, qids=set(qids))
 
