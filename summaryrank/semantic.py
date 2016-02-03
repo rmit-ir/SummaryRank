@@ -350,7 +350,7 @@ def gen_tagme(argv):
                     rep = res.read()
                 except Exception as e:
                     print >>sys.stderr, (docno, id_, qid), e
-                out.write('\t'.join([docno, id_, qid, res.read()]) + '\n')
+                out.write('\t'.join([docno, id_, qid, rep]) + '\n')
                 indicator.update()
 
 
