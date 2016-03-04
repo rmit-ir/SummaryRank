@@ -62,7 +62,7 @@ data) or `extract` (running feature extractors), is used to launch the
 nominated tool.  If the command is not given, SummaryRank will spit out a list
 of supported tools.
 
-### Import the Data ###
+### Import Data ###
 
 In the world of SummaryRank, a project-based repository (called *model*) is
 always there hosting the processed data.  Therefore, on the first run, basic
