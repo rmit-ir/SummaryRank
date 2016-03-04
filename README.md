@@ -72,8 +72,8 @@ imported to create the new model.
 We have implemented some import tools for the following test collections:
 
 * The [WebAP Dataset][] from CIIR/UMass (`import_webap`)
-* [TREC Novelty Track Data] (`import_trec_novelty`)
-* [MobileClick-2] (`import_mobileclick`)
+* [TREC Novelty Track Data][] (`import_trec_novelty`)
+* [MobileClick-2][] (`import_mobileclick`)
 
 The respective corpora tool can be launched by running the command following
 `SummaryRank/run.py`.  To use the import tools, one needs to specify a model
