@@ -113,25 +113,25 @@ Currently, for generating representations we have built in these tools:
 Again in the help screen some descriptions about the tool is given.  Here's
 some basic usage following our WebAP example:
 
-1. Generate terms and stems.  (Both `porter` and `krovetz` stemmers are supported.)
+Generate terms and stems. (Both `porter` and `krovetz` stemmers are supported.)
 
     SummaryRank/run.py gen_term -m webap --stemmer krovetz
 
-2. Generate term frequencies, required by retrieval function features
+Generate term frequencies, required by retrieval function features
    such as `LanguageModelScore` and `BM25Score`.  The frequencies are pulled
    from a Galago inverted index; one also needs to specify the index part
    (usually `postings.krovetz` or `posting.porter`).
 
     SummaryRank/run.py gen_freqstats -m webap /path/to/index postings.krovetz
 
-3. Generate the ESA representation, which is required by the `ESACosineSimilarity`
+Generate the ESA representation, which is required by the `ESACosineSimilarity`
    feature.  One needs to specify the vector size (`-k`) and a Galago inverted
    index over the Wikipedia data.  Additional requirements on how this index
    should be prepared will be discussed later.
 
     SummaryRank/run.py gen_esa -m webap /path/to/index
 
-4. Generate the TAGME representation, which is required by the `TagmeOverlap`
+Generate the TAGME representation, which is required by the `TagmeOverlap`
    feature.  One needs to specify the API key to the TAGME web service.
 
     SummaryRank/run.py gen_tagme -m webap YOURAPIKEY
@@ -188,34 +188,39 @@ vector file `mk.txt.gz`.
 
 SummaryRank also implements a set of data manipulation tools:
 
-* SummaryRank prepends a list of feature names as comments at the very
-  beginning of the feature-vector output (called *preamble*).  The `describe`
-  tool can be used to pull out this info.
+SummaryRank prepends a list of feature names as comments at the very beginning
+of the feature-vector output (called *preamble*).  The `describe` tool can be
+used to pull out this info.
 
     SummaryRank/run.py describe mk.txt.gz
 
-* The `cut` tool is used to extract certain fields (e.g., features) from the
-  vector file, resembling the function of the unix tool `cut`.  It takes the
-  vector file as input, and the field list is given via argument `-f`.  When
-  the argument `--renumbering` is specified, the feature IDs will be renumbered
-  starting from 1.  For example, the following will single out the features 2,
-  3, 5.
+The `cut` tool is used to extract certain fields (e.g., features) from the
+vector file, resembling the function of the unix tool `cut`.  It takes the
+vector file as input, and the field list is given via argument `-f`.  When the
+argument `--renumbering` is specified, the feature IDs will be renumbered
+starting from 1.  For example, the following will single out the features 2, 3,
+5.
 
     SummaryRank/run.py cut mk.txt.gz -f2,3,5 | gzip > mk_primes.txt.gz
 
-* The `join` tool takes two or more vector files and merge them into one set.
-  Some of the feature will be renumbered.
+The `join` tool takes two or more vector files and merge them into one set.
+Some of the feature will be renumbered.
 
     SummaryRank/run.py join mk_123.txt.gz mk_456.txt.gz | gzip > mk_full.txt.gz
 
-* The `shuffle` tool creates random shuffle over query topics, usually used
-  together with `split`.  A random seed can be specified through argument `-seed`.
+The `shuffle` tool creates random shuffle over query topics, usually used
+together with `split`.  A random seed can be specified through argument
+`-seed`.
 
     SummaryRank/run.py shuffle mk.txt.gz | gzip > mk_shuffle.txt.gz
 
-* The `split` tool will split the data into multiple folds (via `-k`).  
+The `split` tool will split the data into multiple folds (via `-k`).  
 
-* The `normalize` tool is used to normalize features values.
+    SummaryRank/run.py split -k 5 mk.txt.gz
+
+The `normalize` tool is used to normalize features values.
+
+    SummaryRank/run.py normalize mk.txt.gz | gzip > mk_normalized.txt.gz
 
 
 
