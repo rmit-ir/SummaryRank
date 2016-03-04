@@ -21,22 +21,21 @@ If you use this package in your research work, please cite the following paper:
 
 ## Dependencies ##
 
-The preferred way of running SummaryRank at this moment is simply through the `run.py`
-script.  The package does not need to be explicitly installed, but quite a few
+The package does not need to be explicitly installed, but quite a few
 dependencies would need to be resolved through `pip`.  Usually, this is how you
 get SummaryRank running on your machine:
 
     git clone https://github.com/rmit-ir/SummaryRank
     pip -r SummaryRank/requirements
-    SummaryRank/run.py
 
 
 ## Usage ##
 
 SummaryRank is designed to help researchers confront two essential but perhaps
 tedious tasks in the ranking experiment: feature extraction and data
-manipulation.  It helps break down the task of data munging into a number of
-small but manageable steps.  
+manipulation.  One can easily break down the task of data munging to a number
+of small but manageable steps.  These steps are performed by executing the
+tools in SummaryRank.  
 
 Some assumptions were made about the experimental task and the data:
 
@@ -47,6 +46,21 @@ Some assumptions were made about the experimental task and the data:
 * Each query topic has a set of relevance judgments over sentences.  The
   purpose of your experiment is to rank the sentences with respect to the query
   topic.
+
+### Launch the Main Script ###
+
+The preferred way of running SummaryRank is simply through the `run.py` script.  
+
+    SummaryRank/run.py
+
+Alternatively, inside the SummaryRank directory the main script can also be launched by:
+
+    python -m summaryrank 
+
+A command following the main script, such as `cut` (selecting columns from
+data) or `extract` (running feature extractors), is used to launch the
+nominated tool.  If the command is not given, SummaryRank will spit out a list
+of supported tools.
 
 ### Import the Data ###
 
@@ -78,7 +92,7 @@ just do:
 [TREC Novelty Track Data]: http://trec.nist.gov/data/novelty.html
 [MobileClick-2]: http://www.mobileclick.org/
 
-### Generating Representations ###
+### Generate Representations ###
 
 Following the import, some of the intermediate data other than the raw texts
 (called *representations*) may need to be generated.  These representations
@@ -122,9 +136,86 @@ some basic usage following our WebAP example:
 
     SummaryRank/run.py gen_tagme -m webap YOURAPIKEY
     
+### Extract Features ###
 
-### Extracting Features ###
+SummaryRank currently has the following features built in:
 
+> SentenceLength          Number of stems in the sentence
+> SentenceLocation        Normalized position of the sentence
+> ExactMatch              Whether query is a substring of the sentence
+> TermOverlap             Fraction of query stems that occur in the sentence
+> SynonymOverlap          Fraction of query stems that occur or have a synonym in the sentence
+> LanguageModelScore      Query likelihood of the sentence language model using Dirichlet smoothing
+> BM25Score               BM25 score for the sentence
+> ESACosineSimilarity     Cosine similarity between query and sentence ESA vectors
+> Word2VecSimilarity      Average cosine similarity between query-sentence word vector pairs
+> TagmeOverlap            Jaccard coefficient between query and sentence TAGME entities
+
+All the feature extraction has to go through the `extract` tool.  The tool
+takes a list of feature classnames as input, execute each of the nominated
+extractors, and print out the produced feature vectors.  The output is in the
+SVMLight format, and is usually stored in a gzip'ed format.
+
+For example, the following command will extract the `SentenceLength` and
+`TermOverlap` features from the WebAP data and store the compressed output to
+some file.
+
+    SummaryRank/run.py extract -m webap SentenceLength TermOverlap | gzip > two_features.txt.gz
+
+Abbreviations to commonly used feature sets such as `MKFeatureSet` were also
+available to save the user some typing.  For example, the following command
+will extract all 6 Metzler-Kanungo features:
+
+    SummaryRank/run.py extract -m webap MKFeatureSet | gzip > mk.txt.gz
+
+Certain features may come with mandatory feature-related options.  This can be
+revealed in the help screen at the very bottom ("dynamically generated") when
+the classnames are given.  
+
+    SummaryRank/run.py extract MKFeatureSet -h
+
+### Generate Context Features ###
+
+A special tool `contextualize` implements the extration of the context features
+proposed in <a href="#yang_beyond_2016">Yang et al</a>.  It takes a feature
+file (and optionally a list of selected fields via `-f`) as input.  For
+example, this will contextualize the features 1, 4, 5, and 6 in the
+vector file `mk.txt.gz`.
+
+    SummaryRank/run.py contextualize -f 1,4-6 mk.txt.gz
+
+### Manipulate the Feature Vector ###
+
+SummaryRank also implements a set of data manipulation tools:
+
+* SummaryRank prepends a list of feature names as comments at the very
+  beginning of the feature-vector output (called *preamble*).  The `describe`
+  tool can be used to pull out this info.
+
+    SummaryRank/run.py describe mk.txt.gz
+
+* The `cut` tool is used to extract certain fields (e.g., features) from the
+  vector file, resembling the function of the unix tool `cut`.  It takes the
+  vector file as input, and the field list is given via argument `-f`.  When
+  the argument `--renumbering` is specified, the feature IDs will be renumbered
+  starting from 1.  For example, the following will single out the features 2,
+  3, 5.
+
+    SummaryRank/run.py cut mk.txt.gz -f2,3,5 | gzip > mk_primes.txt.gz
+
+* The `join` tool takes two or more vector files and merge them into one set.
+  Some of the feature will be renumbered.
+
+    SummaryRank/run.py join mk_123.txt.gz mk_456.txt.gz | gzip > mk_full.txt.gz
+
+* The `shuffle` tool creates random shuffle over query topics, usually used
+  together with `split`.  A random seed can be specified through argument `-seed`.
+
+    SummaryRank/run.py shuffle mk.txt.gz | gzip > mk_shuffle.txt.gz
+
+* The `split` tool will split the data into multiple folds (via `-k`).  
+
+* The `normalize` tool is used to normalize features values.
 
 
 
@@ -148,7 +239,7 @@ Machine Learned Sentence Selection Strategies for Query-Biased Summarization.
 In *Proceedings of SIGIR 2008 Learning to Rank Workshop*, pages 40&ndash;47.
 ACM, 2008.
 
-<a name="liu_2016_beyond"></a> Liu Yang, Qingyao Ai, Damiano Spina,
+<a name="yang_2016_beyond"></a> Liu Yang, Qingyao Ai, Damiano Spina,
 Ruey-Cheng Chen, Liang Pang, W. Bruce Croft, Jiafeng Guo and Falk Scholer.
 Beyond factoid QA: Effective methods for non-factoid answer sentence
 retrieval. In *Proceedings of ECIR '16*, to appear. 2016.
