@@ -140,16 +140,16 @@ Generate the TAGME representation, which is required by the `TagmeOverlap`
 
 SummaryRank currently has the following features built in:
 
-> SentenceLength          Number of stems in the sentence
-> SentenceLocation        Normalized position of the sentence
-> ExactMatch              Whether query is a substring of the sentence
-> TermOverlap             Fraction of query stems that occur in the sentence
-> SynonymOverlap          Fraction of query stems that occur or have a synonym in the sentence
-> LanguageModelScore      Query likelihood of the sentence language model using Dirichlet smoothing
-> BM25Score               BM25 score for the sentence
-> ESACosineSimilarity     Cosine similarity between query and sentence ESA vectors
-> Word2VecSimilarity      Average cosine similarity between query-sentence word vector pairs
-> TagmeOverlap            Jaccard coefficient between query and sentence TAGME entities
+* `SentenceLength`
+* `SentenceLocation`
+* `ExactMatch`
+* `TermOverlap`
+* `SynonymOverlap`
+* `LanguageModelScore`
+* `BM25Score`
+* `ESACosineSimilarity`
+* `Word2VecSimilarity`
+* `TagmeOverlap`
 
 All the feature extraction has to go through the `extract` tool.  The tool
 takes a list of feature classnames as input, execute each of the nominated
