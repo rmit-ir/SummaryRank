@@ -1,0 +1,30 @@
+#!/bin/bash
+
+cwd=$(dirname $0)
+basedir="$cwd/.."
+i=0
+
+SummaryRank() {
+    i=$(($i + 1))
+    echo "[$i] $basedir/run.py $@" >&2
+    $basedir/run.py "$@"
+    echo >&2
+    [ $? -gt 0 ] && { echo "Abort" >& 2; exit; }
+}
+
+webap_source=WebAP
+model=webap
+
+gov2_index=/path/to/gov2/galago/index
+stemmer=krovetz
+
+if [ ! -d $gov2_index ]; then
+    echo "Set 'gov2_index' to a Galago index over some proper background collection (e.g., GOV2)" >&2
+    exit
+fi
+
+SummaryRank import_webap -m $model $webap_source/gradedText/gov2.query.json \
+    $webap_source/gradedText/grade.trectext_patched
+SummaryRank gen_term -m $model --stemmer $stemmer
+SummaryRank gen_freqstats -m $model $gov2_index postings.$stemmer
+SummaryRank extract -m $model MKFeatureSet --lm-mu 10 | gzip > MK.txt.gz
