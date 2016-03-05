@@ -26,7 +26,12 @@ dependencies would need to be resolved through `pip`.  Usually, this is how you
 get SummaryRank running on your machine:
 
     git clone https://github.com/rmit-ir/SummaryRank
-    pip -r SummaryRank/requirements
+    pip install -r SummaryRank/requirements
+
+The `wordnet` corpora in ntlk is also part of the dependencies.  It can be
+installed via this line:
+
+    python -m nltk.downloader wordnet
 
 
 ## Usage ##
