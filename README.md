@@ -14,9 +14,10 @@ As of January 2016, this package supports the following sets of features:
 
 If you use this package in your research work, please cite the following paper:
 
-    Liu Yang, Qingyao Ai, Damiano Spina, Ruey-Cheng Chen, Liang Pang, W. Bruce Croft, 
-    Jiafeng Guo and Falk Scholer.  Beyond factoid QA: Effective methods for non-factoid 
-    answer sentence retrieval. In Proceedings of ECIR '16, to appear. 2016.
+>  Liu Yang, Qingyao Ai, Damiano Spina, Ruey-Cheng Chen, Liang Pang, W. Bruce
+>  Croft, Jiafeng Guo and Falk Scholer.  Beyond factoid QA: Effective methods
+>  for non-factoid answer sentence retrieval. In Proceedings of ECIR '16, pages
+>  115&ndash;128. Springer, 2016.
 
 
 ## Dependencies ##
@@ -249,7 +250,7 @@ Machine Learned Sentence Selection Strategies for Query-Biased Summarization.
 In *Proceedings of SIGIR 2008 Learning to Rank Workshop*, pages 40&ndash;47.
 ACM, 2008.
 
-<a name="yang_2016_beyond"></a> Liu Yang, Qingyao Ai, Damiano Spina,
-Ruey-Cheng Chen, Liang Pang, W. Bruce Croft, Jiafeng Guo and Falk Scholer.
-Beyond factoid QA: Effective methods for non-factoid answer sentence
-retrieval. In *Proceedings of ECIR '16*, to appear. 2016.
+<a name="yang_2016_beyond"></a> Liu Yang, Qingyao Ai, Damiano Spina, Ruey-Cheng
+Chen, Liang Pang, W. Bruce Croft, Jiafeng Guo and Falk Scholer.  Beyond factoid
+QA: Effective methods for non-factoid answer sentence retrieval. In
+*Proceedings of ECIR '16*, pages 115&ndash;128. Springer, 2016.
