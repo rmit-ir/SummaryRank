@@ -5,4 +5,4 @@ numpy
 PorterStemmer
 KrovetzStemmer>=0.3
 redis
-scikit-learn
+unittest2
