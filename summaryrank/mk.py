@@ -14,7 +14,7 @@ import summaryrank
 
 from summaryrank.util import unique, memoize, SaveFileLineIndicator
 from summaryrank.resources import INQUERY_STOPLIST, KrovetzStemmer, PorterStemmer
-from summaryrank.resources import GalagoIndex, GalagoIndexDump
+from summaryrank.resources import IndriIndex, GalagoIndex, IndexDump
 
 
 class SentenceLength(summaryrank.Feature):
@@ -151,7 +151,7 @@ class LanguageModelScore(summaryrank.Feature):
     def compute(self, model):
         result = []
         if not self._freq_stats:
-            self._freq_stats = GalagoIndexDump.load(model.get_path('freq_stats'))
+            self._freq_stats = IndexDump.load(model.get_path('freq_stats'))
 
         collection_len = self._freq_stats.collection_length()
 
@@ -212,7 +212,7 @@ class BM25Score(summaryrank.Feature):
     def compute(self, model):
         result = []
         if not self._freq_stats:
-            self._freq_stats = GalagoIndexDump.load(model.get_path('freq_stats'))
+            self._freq_stats = IndexDump.load(model.get_path('freq_stats'))
 
         N = self._freq_stats.num_docs()
 
@@ -320,12 +320,21 @@ def gen_freqstats(argv):
     parser.add_argument('-m', dest='model', metavar='DIR', required=True,
                         help='store the processed data in DIR')
     parser.add_argument('index_path',
-                        help='path to Galago index')
-    parser.add_argument('index_part',
-                        help='index part: postings.krovetz or postings.porter')
+                        help='path to Indri/Galago index')
+    parser.add_argument('index_part', nargs='?',
+                        help='(Galago only) index part: postings.krovetz or postings.porter')
     args = parser.parse_args(argv)
 
     model = summaryrank.Model(args.model)
+
+    if IndriIndex.is_valid_path(args.index_path):
+        index = IndriIndex(args.index_path)
+        print >>sys.stderr, 'use Indri index'
+    elif GalagoIndex.is_valid_path(args.index_path):
+        index = GalagoIndex(args.index_path, args.index_part)
+        print >>sys.stderr, 'use Galago index'
+    else:
+        parser.error('must specify a valid Indri/Galago index')
 
     term_set = set()
     for text, _ in model.load_topics('topics_stem'):
@@ -334,4 +343,5 @@ def gen_freqstats(argv):
         term_set.update(text.split())
 
     print >>sys.stderr, 'found {} stems'.format(len(term_set))
-    GalagoIndexDump.dump(model.get_path('freq_stats'), args.index_path, args.index_part, term_set)
+
+    IndexDump.dump(model.get_path('freq_stats'), index, term_set)

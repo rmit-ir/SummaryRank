@@ -61,75 +61,35 @@ class FrequencyStats(object):
     """ Corpus-wide frequency statistics """
 
     def cf(self, term):
-        """ collection (term) frequency """
+        """ Return the collection (term) frequency """
         pass
     def df(self, term):
-        """ document frequency """
+        """ Return the document frequency """
         pass
     def collection_length(self):
-        """ total number of terms in the collection """
+        """ Return the total number of terms in the collection """
         pass
     def num_docs(self):
-        """ number of documents in the collection """
+        """ Return the number of documents in the collection """
         pass
 
 
-class GalagoIndex(FrequencyStats):
-    """ A proxy that pulls raw data from a working Galago index """
+class Index(FrequencyStats):
+    """ Index object """
 
-    @classmethod
-    def dump_stats(cls, index_path, index_part):
+    def dump_stats(self):
         """ Dump stats """
-        p = subprocess.Popen(['galago', 'stats', '--index={}'.format(index_path),
-                              '--part={}'.format(index_part)],
-                             stdout=subprocess.PIPE)
-        output = p.communicate()[0]
-        stats = json.loads(output)
-        return stats
-
-    @classmethod
-    def dump_term_stats(cls, index_path, index_part):
+        pass
+    def dump_term_stats(self):
         """ Dump term stats """
-        part_path = os.path.join(index_path, index_part)
-        p = subprocess.Popen(['galago', 'dump-term-stats', part_path],
-                             stdout=subprocess.PIPE)
-        for line in p.stdout:
-            term, cf, df = line.rstrip('\n').split('\t', 2)
-            yield term, cf, df
-
-    def __init__(self, path, part):
-        self.path = path
-        self.part = part
-
-        stats = GalagoIndex.dump_stats(path, part)
-        self._collection_length = int(stats[part]['statistics/collectionLength'])
-        self._num_docs = int(stats[part]['statistics/highestDocumentCount'])
-
-    @memoize
-    def _get_term_stats(self, term):
-        """ Get term stats (internal method) """
-        p = subprocess.Popen(['galago', 'dump-key-value',
-                              os.path.join(self.path, self.part), term],
-                             stdout=subprocess.PIPE)
-        output = p.communicate()[0]
-        freqs = [line.count(',') - 1 for line in output.splitlines()[1:]]
-        return {'cf': sum(freqs), 'df': len(freqs)}
+        pass
+    @classmethod
+    def is_valid_path(cls, path):
+        """ Check if the index path is valid """
+        pass
 
 
-    def cf(self, term):
-        return self._get_term_stats(term)['cf']
-
-    def df(self, term):
-        return self._get_term_stats(term)['df']
-
-    def collection_length(self):
-        return self._collection_length
-
-    def num_docs(self):
-        return self._num_docs
-
-
-class GalagoIndexDump(FrequencyStats):
+class IndexDump(FrequencyStats):
     """ A proxy that pulls data from an offline index dump """
 
     def __init__(self, collection_length, num_docs, cfdf):
@@ -154,7 +114,7 @@ class GalagoIndexDump(FrequencyStats):
         return self._num_docs
 
     @classmethod
-    def dump(cls, path, index_path, index_part, term_set=None):
+    def dump(cls, path, index, term_set=None):
         """ Retrieve/filter term stats and save to file """
         if term_set:
             to_include = lambda x: x in term_set
@@ -162,17 +122,14 @@ class GalagoIndexDump(FrequencyStats):
             to_include = lambda x: True
 
         with gzip.open(path, 'wb') as out, SaveFileLineIndicator(path) as indicator:
-            stats = GalagoIndex.dump_stats(index_path, index_part)
-            collection_length = stats[index_part]['statistics/collectionLength']
-            num_docs = stats[index_part]['statistics/highestDocumentCount']
-            out.write('\t'.join(['__INDEX__', str(collection_length), str(num_docs)]) + '\n')
+            out.write('\t'.join(['__INDEX__', str(index.collection_length()),
+                                 str(index.num_docs())]) + '\n')
             indicator.update()
 
-            for term, cf, df in GalagoIndex.dump_term_stats(index_path, index_part):
+            for term, cf, df in index.dump_term_stats():
                 if to_include(term):
                     out.write('\t'.join([term, cf, df]) + '\n')
                     indicator.update()
-
 
     @classmethod
     def load(cls, path):
@@ -189,6 +146,190 @@ class GalagoIndexDump(FrequencyStats):
                 indicator.update()
 
         return cls(int(collection_length), int(num_docs), cfdf)
+
+
+class IndriIndex(Index):
+    """ A proxy that pulls raw data from a working Indri index """
+
+    def __init__(self, path, cmdpath='dumpindex'):
+        self.path = path
+        self.cmdpath = cmdpath
+
+        stats = self.dump_stats()
+        self._collection_length = int(stats['total terms'])
+        self._num_docs = int(stats['documents'])
+
+    @memoize
+    def _get_term_stats(self, term):
+        """ Get term stats (internal method) """
+        p = subprocess.Popen([self.cmdpath, self.path, 'xcount', term],
+                             stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        cf = int(output.strip().split(':')[1])
+
+        p = subprocess.Popen([self.cmdpath, self.path, 'dxcount', term],
+                             stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        df = int(output.strip().split(':')[1])
+        return {'cf': cf, 'df': df}
+
+    def dump_stats(self):
+        """ Dump stats """
+        p = subprocess.Popen([self.cmdpath, self.path, 'stats'],
+                             stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        stats = dict()
+        for line in output.splitlines()[1:]:
+            k, v = line.split(':', 1)
+            stats[k.strip()] = v.strip()
+        return stats
+
+    def dump_term_stats(self):
+        """ Dump term stats """
+        p = subprocess.Popen([self.cmdpath, self.path, 'vocabulary'],
+                             stdout=subprocess.PIPE)
+        next(p.stdout)
+        for line in p.stdout:
+            term, cf, df = line.rstrip().split(None, 2)
+            yield term, cf, df
+
+    def cf(self, term):
+        return self._get_term_stats(term)['cf']
+
+    def df(self, term):
+        return self._get_term_stats(term)['df']
+
+    def collection_length(self):
+        return self._collection_length
+
+    def num_docs(self):
+        return self._num_docs
+
+    @classmethod
+    def is_valid_path(cls, path):
+        valid_names = set(('collection', 'deleted', 'index', 'manifest'))
+        all_names = set(os.listdir(path))
+        return valid_names.issubset(all_names)
+
+
+class GalagoIndex(Index):
+    """ A proxy that pulls raw data from a working Galago index """
+
+    def __init__(self, path, part, cmdpath='galago'):
+        self.path = path
+        self.part = part
+        self.cmdpath = cmdpath
+
+        stats = self.dump_stats()
+        self._collection_length = int(stats[part]['statistics/collectionLength'])
+        self._num_docs = int(stats[part]['statistics/highestDocumentCount'])
+
+    @memoize
+    def _get_term_stats(self, term):
+        """ Get term stats (internal method) """
+        p = subprocess.Popen([self.cmdpath, 'dump-key-value',
+                              os.path.join(self.path, self.part), term],
+                             stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        freqs = [line.count(',') - 1 for line in output.splitlines()[1:]]
+        return {'cf': sum(freqs), 'df': len(freqs)}
+
+    def dump_stats(self):
+        """ Dump stats """
+        p = subprocess.Popen([self.cmdpath, 'stats', '--index={}'.format(self.path),
+                              '--part={}'.format(self.part)],
+                             stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        stats = json.loads(output)
+        return stats
+
+    def dump_term_stats(self):
+        """ Dump term stats """
+        part_path = os.path.join(self.path, self.part)
+        p = subprocess.Popen([self.cmdpath, 'dump-term-stats', part_path],
+                             stdout=subprocess.PIPE)
+        for line in p.stdout:
+            term, cf, df = line.rstrip('\n').split('\t', 2)
+            yield term, cf, df
+
+    def cf(self, term):
+        return self._get_term_stats(term)['cf']
+
+    def df(self, term):
+        return self._get_term_stats(term)['df']
+
+    def collection_length(self):
+        return self._collection_length
+
+    def num_docs(self):
+        return self._num_docs
+
+    @classmethod
+    def is_valid_path(cls, path):
+        valid_names = set(('buildManifest.json', 'corpus', 'lengths', 'names', 'postings'))
+        all_names = set(os.listdir(path))
+        return valid_names.issubset(all_names)
+
+
+# class GalagoIndexDump(FrequencyStats):
+    # """ A proxy that pulls data from an offline index dump """
+
+    # def __init__(self, collection_length, num_docs, cfdf):
+        # self._collection_length = collection_length
+        # self._num_docs = num_docs
+        # self._cfdf = cfdf
+
+    # def cf(self, term):
+        # if term not in self._cfdf:
+            # return 0
+        # return self._cfdf[term][0]
+
+    # def df(self, term):
+        # if term not in self._cfdf:
+            # return 0
+        # return self._cfdf[term][1]
+
+    # def collection_length(self):
+        # return self._collection_length
+
+    # def num_docs(self):
+        # return self._num_docs
+
+    # @classmethod
+    # def dump(cls, path, index_path, index_part, term_set=None):
+        # """ Retrieve/filter term stats and save to file """
+        # if term_set:
+            # to_include = lambda x: x in term_set
+        # else:
+            # to_include = lambda x: True
+
+        # with gzip.open(path, 'wb') as out, SaveFileLineIndicator(path) as indicator:
+            # stats = GalagoIndex.dump_stats(index_path, index_part)
+            # collection_length = stats[index_part]['statistics/collectionLength']
+            # num_docs = stats[index_part]['statistics/highestDocumentCount']
+            # out.write('\t'.join(['__INDEX__', str(collection_length), str(num_docs)]) + '\n')
+            # indicator.update()
+
+            # for term, cf, df in GalagoIndex.dump_term_stats(index_path, index_part):
+                # if to_include(term):
+                    # out.write('\t'.join([term, cf, df]) + '\n')
+                    # indicator.update()
+
+    # @classmethod
+    # def load(cls, path):
+        # """ Load saved term stats """
+        # with gzip.open(path) as in_, LoadFileLineIndicator(path) as indicator:
+            # firstline = next(in_)
+            # _, collection_length, num_docs = firstline.rstrip('\n').split('\t', 2)
+            # indicator.update()
+
+            # cfdf = dict()
+            # for line in in_:
+                # term, cf, df = line.rstrip('\n').split('\t', 2)
+                # cfdf[term] = (int(cf), int(df))
+                # indicator.update()
+
+        # return cls(int(collection_length), int(num_docs), cfdf)
 
 
 class RedisStrings(object):
