@@ -18,7 +18,7 @@ def tag(text, key, **kwargs):
             param[attr] = str(val).lower() if isinstance(val, bool) else str(val)
     # FIXME: dirty fix
     for k, v in param.items():
-        param[k] = unicode(v).encode('utf8')
+        param[k] = unicode(v, 'utf8').encode('utf8')
     data = urllib.urlencode(param)
     request = urllib2.Request(TAGME_TAG_URL, data)
     return urllib2.urlopen(request)

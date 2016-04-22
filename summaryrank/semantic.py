@@ -329,7 +329,7 @@ def gen_tagme(argv):
 
     topics = model.load_representation('topics_text')
     with model.open('topics_tagme', 'wb') as out:
-        with SaveFileLineIndicator('topics_tagme') as indicator:
+        with SaveFileLineIndicator('topics_tagme', gap=1) as indicator:
             for qid, text in topics:
                 rep = ''
                 try:
@@ -342,7 +342,7 @@ def gen_tagme(argv):
 
     sentences = model.load_representation('sentences_text')
     with model.open('sentences_tagme', 'wb') as out:
-        with SaveFileLineIndicator('sentences_tagme') as indicator:
+        with SaveFileLineIndicator('sentences_tagme', gap=1) as indicator:
             for docno, id_, qid, text in sentences:
                 rep = ''
                 try:
