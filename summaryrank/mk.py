@@ -84,7 +84,8 @@ class TermOverlap(summaryrank.Feature):
         for text, m in sentences_stem:
             stems = text.split()
             overlap = len([1 for stem in queries[m['qid']] if stem in stems])
-            result.append(float(overlap) / len(queries[m['qid']]))
+            ratio = float(overlap) / len(queries[m['qid']]) if overlap > 0 else float(0)
+            result.append(ratio)
         return result
 
 
@@ -116,7 +117,8 @@ class SynonymOverlap(summaryrank.Feature):
             stems = [s.decode('utf8') for s in text.split()]
             overlap = len([1 for syns in queries[m['qid']]
                            if any([syn in stems for syn in syns])])
-            result.append(float(overlap) / len(queries[m['qid']]))
+            ratio = float(overlap) / len(queries[m['qid']]) if overlap > 0 else float(0)
+            result.append(ratio)
         return result
 
 
