@@ -241,7 +241,7 @@ The `normalize` tool is used to normalize features values.
 
 <a name="chen_2015_harnessing"></a> Ruey-Cheng Chen, Damiano Spina, W. Bruce
 Croft, Mark Sanderson, and Falk Scholer.  Harnessing semantics for answer
-sentence retrieva.  In *Proceedings of the Eighth Workshop on Exploiting
+sentence retrieval.  In *Proceedings of the Eighth Workshop on Exploiting
 Semantic Annotations in Information Retrieval*, ESAIR '15 (CIKM workshop),
 pages 21&ndash;27. ACM, 2015.
 
