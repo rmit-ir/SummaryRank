@@ -254,3 +254,7 @@ ACM, 2008.
 Chen, Liang Pang, W. Bruce Croft, Jiafeng Guo and Falk Scholer.  Beyond factoid
 QA: Effective methods for non-factoid answer sentence retrieval. In
 *Proceedings of ECIR '16*, pages 115&ndash;128. Springer, 2016.
+
+<a name="yulianti_2016_using"></a> Evi Yulianti, Ruey-Cheng Chen, Falk Scholer, 
+and Mark Sanderson.  Using Semantic and Context Features for Answer Summary 
+Extraction. In *Proceedings of ADCS '16*, pages 81-84. ACM, 2016.
