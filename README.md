@@ -14,11 +14,17 @@ As of January 2016, this package supports the following sets of features:
 
 If you use this package in your research work, please cite the following paper:
 
->  Liu Yang, Qingyao Ai, Damiano Spina, Ruey-Cheng Chen, Liang Pang, W. Bruce
->  Croft, Jiafeng Guo and Falk Scholer.  Beyond factoid QA: Effective methods
->  for non-factoid answer sentence retrieval. In Proceedings of ECIR '16, pages
->  115&ndash;128. Springer, 2016.
-
+```
+@inproceedings{yang_beyond_2016,
+ author = {Yang, Liu and Ai, Qingyao and Spina, Damiano and Chen, Ruey-Cheng and
+           Pang, Liang and Croft, W. Bruce and Guo, Jiafeng and Scholer, Falk},
+ title = {Beyond Factoid {QA}: Effective Methods for Non-factoid Answer Sentence Retrieval},
+ booktitle = {Proceedings of {ECIR} '16},
+ year = {2016},
+ pages = {115--128},
+ publisher = {Springer}
+}
+```
 
 ## Dependencies ##
 
