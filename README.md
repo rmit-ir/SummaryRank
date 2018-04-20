@@ -39,7 +39,14 @@ The `wordnet` corpora in ntlk is also part of the dependencies.  It can be
 installed via this line:
 
     python -m nltk.downloader wordnet
+    
+**EDIT: Some further details about the experiment settings**
 
+For the ECIR '16 experiments we used two Galago indexes, one built over Gov2 as the background model and the other over English Wikipedia for computing ESA.  To build these indexes, you simply do:
+
+    galago --indexPath=/path/to/index --inputPath+/path/to/trectext --stemmer+krovetz --stemmer+porter
+    
+Originally we used the English Wikipedia dump exported on May 15, 2015, but any later version should also work.
 
 ## Usage ##
 
