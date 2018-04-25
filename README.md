@@ -58,8 +58,8 @@ SummaryRank will print out a list of supported tools if no command is specified.
   So one can essentially build this file from any custom resources.
   
   Note that the first line records collection level information.  We put total number of terms 
-  in the field `term frequency` and total number of docs in `document_frequency`.  
-  Put any string as `term` as it is ignored in this case.
+  in the field `term frequency` and total number of docs in `document_frequency`. Put any string
+  as `term` as it is ignored in this case.
 
 * The `gen_freqstats` tool can take an Indri index as input.
 
@@ -69,20 +69,18 @@ SummaryRank will print out a list of supported tools if no command is specified.
 ### Import Data ###
 
 SummaryRank put all processed data in a model directory (called *model*), so
-upon the first execution, basic data such as query topics, sentences, or relevance
-judgments will need to be imported.
+upon the first execution, basic data will need to be imported.
 
-Some import tools are available for these collections:
+Some import tools are available for these collections, which can be launched as commands:
 
 * The [WebAP Dataset][] from CIIR/UMass (`import_webap`)
 * [TREC Novelty Track Data][] (`import_trec_novelty`)
 * [MobileClick-2][] (`import_mobileclick`)
 
-The corpora tools can be launched as commands.  One may need to specify a model
-directory using argument `-m` and supply a list of raw files distributed with
-the benchmark.
+One may need to specify a model directory using argument `-m` and supply a
+list of raw files distributed with the benchmark.
 
-For example, suppose the WebAP data is placed under the directory `WebAP` and you can just do:
+To import WebAP data, for example, you can just do (replace WebAP files with true paths):
 
     SummaryRank/run.py import_webap -m webap WebAP/gradedText/gov2.query.json WebAP/gradedText/grade.trectext_patched
 
@@ -101,43 +99,34 @@ Certain tools such as `gen_freqstats` and `gen_esa` take [Galago][] indexes as i
 
 Following the import, some of the intermediate data other than the raw texts
 (called *representations*) may need to be generated.  These representations
-serve as the input of downstream feature extractors.  For instance, some
-features are based on word stems rather than words, some depends on term
-frequency statistics from the inverted index, and some might need to invoke an
-entity annotator.  This additional step allows us to incorporate external
-resources or the output of external tools into the pipeline, by having a
-separate set of representation *generators* to do the work.
+serve as the input of downstream feature extractors.  This additional step
+incorporates external resources or the output of external tools into the pipeline.
 
-Currently, for generating representations we have built in these tools:
+Currently, these representations are available:
 
 * terms and stems (`gen_term`)
 * term frequency stats (`gen_freqstats`)
 * ESA representation (`gen_esa`)
 * TAGME representation (`gen_tagme`)
 
-Again in the help screen some descriptions about the tool is given.  Here's
-some basic usage following our WebAP example:
-
-Generate terms and stems. (Both `porter` and `krovetz` stemmers are supported.)
+To generate terms/stems (with both porter/krovetz stemmer supports):
 
     SummaryRank/run.py gen_term -m webap --stemmer krovetz
 
-Generate term frequencies, required by retrieval function features
-   such as `LanguageModelScore` and `BM25Score`.  The frequencies are pulled
-   from a Galago inverted index; one also needs to specify the index part
-   (usually `postings.krovetz` or `posting.porter`).
+To generate term frequencies, which are required by retrieval function features
+such as `LanguageModelScore` and `BM25Score`:
 
     SummaryRank/run.py gen_freqstats -m webap /path/to/index postings.krovetz
 
-Generate the ESA representation, which is required by the `ESACosineSimilarity`
-   feature.  One needs to specify the vector size (`-k`) and a Galago inverted
-   index over the Wikipedia data.  Additional requirements on how this index
-   should be prepared will be discussed later.
+Note that the frequencies are pulled from a Galago inverted index, so one needs
+to specify the index part (usually `postings.krovetz` or `posting.porter`).
+
+To generate the ESA representation, with vector size (`-k`) and a Galago inverted
+   index over the Wikipedia data as input:
 
     SummaryRank/run.py gen_esa -m webap /path/to/index
 
-Generate the TAGME representation, which is required by the `TagmeOverlap`
-   feature.  One needs to specify the API key to the TAGME web service.
+To generate the TAGME representation, with the API key to the TAGME web service as input:
 
     SummaryRank/run.py gen_tagme -m webap YOURAPIKEY
     
