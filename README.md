@@ -5,7 +5,7 @@ over sentence/summary data.  It has implemented a range of basic functions,
 such as data imports, representations/features generation, and feature vectors
 split/join operations (for SVMLight format), to make ranking experiments easy.
 
-As of January 2016, this package supports the following sets of features:
+This package supports the following sets of features:
 
 * Query-biased summarization features from Metzler and Kanungo (2008) 
 * ESA and Word2Vec features from Chen et al. (2015)
@@ -25,20 +25,46 @@ If you use this package in your research work, please cite the following paper:
 }
 ```
 
-## Dependencies ##
+## Get Started ##
 
 To install all dependencies:
 
     pip install -r SummaryRank/requirements
     python -m nltk.downloader wordnet
     
-## Get Started ##
-
 To run the main script:
 
     SummaryRank/run.py <command>
 
 SummaryRank will print out a list of supported tools if no command is specified.
+
+
+## Notes for Replicating ECIR '16 Rxperiments ##
+
+* We used two Galago indexes, one built over Gov2 as the background model 
+  and the other over English Wikipedia for computing ESA.
+
+  To build these indexes, you simply do (replace `galago` with the true Galago executable):
+
+      galago --indexPath=/path/to/index --inputPath+/path/to/trectext --stemmer+krovetz --stemmer+porter
+    
+* Originally we used the English Wikipedia dump exported on May 15, 2015, but any 
+  later version should also work.
+  
+* The `gen_freqstats` tool basically produces a `freqstats.gz` file, in which each line is of the form:
+
+      <term> <term_frequency> <document_frequency>
+  
+  So one can essentially build this file from any custom resources.
+  
+  Note that the first line records collection level information.  We put total number of terms 
+  in the field `term frequency` and total number of docs in `document_frequency`.  
+  Put any string as `term` as it is ignored in this case.
+
+* The `gen_freqstats` tool can take an Indri index as input.
+
+
+## Usage ##
 
 ### Import Data ###
 
@@ -67,11 +93,9 @@ For example, suppose the WebAP data is placed under the directory `WebAP` and yo
 
 ### Prepare Indexes ###
 
-For the ECIR '16 experiments we used two Galago indexes, one built over Gov2 as the background model and the other over English Wikipedia for computing ESA.  To build these indexes, you simply do:
+Certain tools such as `gen_freqstats` and `gen_esa` take [Galago][] indexes as input.
 
-    galago --indexPath=/path/to/index --inputPath+/path/to/trectext --stemmer+krovetz --stemmer+porter
-    
-Originally we used the English Wikipedia dump exported on May 15, 2015, but any later version should also work.
+[Galago]: https://www.lemurproject.org/galago.php
 
 ### Generate Representations ###
 
@@ -202,8 +226,6 @@ The `split` tool will split the data into multiple folds (via `-k`).
 The `normalize` tool is used to normalize features values.
 
     SummaryRank/run.py normalize mk.txt.gz | gzip > mk_normalized.txt.gz
-
-
 
 ## Contributors ##
 
