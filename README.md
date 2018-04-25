@@ -39,7 +39,10 @@ To run the main script:
 SummaryRank will print out a list of supported tools if no command is specified.
 
 
-## Notes for Replicating ECIR '16 Rxperiments ##
+## Notes for Replicating ECIR '16 Experiments ##
+
+* An simple example script for extracting Metzler-Kanungo features
+  is given in the directory `examples/`.
 
 * We used two Galago indexes, one built over Gov2 as the background model 
   and the other over English Wikipedia for computing ESA.
