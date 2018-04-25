@@ -1,5 +1,4 @@
-SummaryRank
-===========
+# SummaryRank
 
 SummaryRank is a python package dedicated to supporting ranking experiments
 over sentence/summary data.  It has implemented a range of basic functions,
@@ -28,81 +27,36 @@ If you use this package in your research work, please cite the following paper:
 
 ## Dependencies ##
 
-The package does not need to be explicitly installed, but quite a few
-dependencies would need to be resolved through `pip`.  Usually, this is how you
-get SummaryRank running on your machine:
+To install all dependencies:
 
-    git clone https://github.com/rmit-ir/SummaryRank
     pip install -r SummaryRank/requirements
-
-The `wordnet` corpora in ntlk is also part of the dependencies.  It can be
-installed via this line:
-
     python -m nltk.downloader wordnet
     
-**EDIT: Some further details about the experiment settings**
+## Get Started ##
 
-For the ECIR '16 experiments we used two Galago indexes, one built over Gov2 as the background model and the other over English Wikipedia for computing ESA.  To build these indexes, you simply do:
+To run the main script:
 
-    galago --indexPath=/path/to/index --inputPath+/path/to/trectext --stemmer+krovetz --stemmer+porter
-    
-Originally we used the English Wikipedia dump exported on May 15, 2015, but any later version should also work.
+    SummaryRank/run.py <command>
 
-## Usage ##
-
-SummaryRank is designed to help researchers confront two essential but perhaps
-tedious tasks in the ranking experiment: feature extraction and data
-manipulation.  One can easily break down the task of data munging to a number
-of small but manageable steps.  These steps are performed by executing the
-tools in SummaryRank.  
-
-Some assumptions were made about the experimental task and the data:
-
-* Your data has a set of *query topics*, each of these are associated with a
-  set of *documents*.  Each of these documents contains one or more
-  sub-document text units called *sentences*.
-
-* Each query topic has a set of relevance judgments over sentences.  The
-  purpose of your experiment is to rank the sentences with respect to the query
-  topic.
-
-### Launch the Main Script ###
-
-The preferred way of running SummaryRank is simply through the `run.py` script.  
-
-    SummaryRank/run.py
-
-Alternatively, inside the SummaryRank directory the main script can also be launched by:
-
-    python -m summaryrank 
-
-A command following the main script, such as `cut` (selecting columns from
-data) or `extract` (running feature extractors), is used to launch the
-nominated tool.  If the command is not given, SummaryRank will spit out a list
-of supported tools.
+SummaryRank will print out a list of supported tools if no command is specified.
 
 ### Import Data ###
 
-In the world of SummaryRank, a project-based repository (called *model*) is
-always there hosting the processed data.  Therefore, on the first run, basic
-data such as query topics, sentences, or relevance judgments will need to be
-imported to create the new model.
+SummaryRank put all processed data in a model directory (called *model*), so
+upon the first execution, basic data such as query topics, sentences, or relevance
+judgments will need to be imported.
 
-We have implemented some import tools for the following test collections:
+Some import tools are available for these collections:
 
 * The [WebAP Dataset][] from CIIR/UMass (`import_webap`)
 * [TREC Novelty Track Data][] (`import_trec_novelty`)
 * [MobileClick-2][] (`import_mobileclick`)
 
-The respective corpora tool can be launched by running the command following
-`SummaryRank/run.py`.  To use the import tools, one needs to specify a model
+The corpora tools can be launched as commands.  One may need to specify a model
 directory using argument `-m` and supply a list of raw files distributed with
-the benchmark.  Detailed instructions for each of these tools are available in
-the help screen (via argument `--help`).  
+the benchmark.
 
-As an example, suppose you have downloaded the WebAP data and extracted all the
-fileis under `WebAP`.  To import the data into a model directory named `webap`, you
-just do:
+For example, suppose the WebAP data is placed under the directory `WebAP` and you can just do:
 
     SummaryRank/run.py import_webap -m webap WebAP/gradedText/gov2.query.json WebAP/gradedText/grade.trectext_patched
 
@@ -110,6 +64,14 @@ just do:
 [WebAP Dataset]: https://ciir.cs.umass.edu/downloads/WebAP/
 [TREC Novelty Track Data]: http://trec.nist.gov/data/novelty.html
 [MobileClick-2]: http://www.mobileclick.org/
+
+### Prepare Indexes ###
+
+For the ECIR '16 experiments we used two Galago indexes, one built over Gov2 as the background model and the other over English Wikipedia for computing ESA.  To build these indexes, you simply do:
+
+    galago --indexPath=/path/to/index --inputPath+/path/to/trectext --stemmer+krovetz --stemmer+porter
+    
+Originally we used the English Wikipedia dump exported on May 15, 2015, but any later version should also work.
 
 ### Generate Representations ###
 
